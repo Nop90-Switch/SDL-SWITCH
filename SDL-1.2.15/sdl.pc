@@ -1,0 +1,15 @@
+# sdl pkg-config source file
+
+prefix=/c/devkitPro/portlibs/3ds
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: sdl
+Description: Simple DirectMedia Layer is a cross-platform multimedia library designed to provide low level access to audio, keyboard, mouse, joystick, 3D hardware via OpenGL, and 2D video framebuffer.
+Version: 1.2.15
+Requires:
+Conflicts:
+Libs: -L${libdir}  -specs=3dsx.specs -march=armv6k -mfloat-abi=hard                   -L/c/devkitPro/portlibs/3ds/lib -L/c/devkitPro/portlibs/armv6k/lib -lSDL                    -L/c/devkitPro/libctru/lib -lcitro3d -lctru
+Libs.private: -specs=3dsx.specs -march=armv6k -mfloat-abi=hard                   -L/c/devkitPro/portlibs/3ds/lib -L/c/devkitPro/portlibs/armv6k/lib -lSDL                    -L/c/devkitPro/libctru/lib -lcitro3d -lctru  -lm
+Cflags: -I${includedir}/SDL -D_GNU_SOURCE=1 -ffunction-sections -fdata-sections -march=armv6k                      -mtune=mpcore -mfloat-abi=hard -mword-relocations                      -I/c/devkitPro/libctru/include -DARM11 -D_3DS
