@@ -136,6 +136,10 @@ int SWITCH_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	gfxInitDefault();
 	vformat->BitsPerPixel = 32;
 	vformat->BytesPerPixel = 4;
+	vformat->Rmask = 0xff000000;
+	vformat->Gmask = 0x00ff0000;
+	vformat->Bmask = 0x0000ff00; 
+	vformat->Amask = 0x000000ff; 
 
 	/* We're done! */
 	return(0);
@@ -240,7 +244,7 @@ static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface) {
 		{
 			pos_dst = y * width + x;
 			pos_src = (y * this->screen->w + x)*4;
-			framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+4]);
+			framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
 		}
 	}
 
