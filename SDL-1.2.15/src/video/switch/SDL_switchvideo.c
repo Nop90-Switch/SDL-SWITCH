@@ -59,20 +59,13 @@ static void SWITCH_UpdateRects(_THIS, int numrects, SDL_Rect *rects);
 static int SWITCH_Available(void)
 {
 	return(1);
-/*	
-	const char *envr = SDL_getenv("SDL_VIDEODRIVER");
-	if ((envr) && (SDL_strcmp(envr, SWITCHVID_DRIVER_NAME) == 0)) {
-		return(1);
-	}
-
-	return(0);
-*/
 }
 
 static void SWITCH_DeleteDevice(SDL_VideoDevice *device)
 {
 	SDL_free(device->hidden);
 	SDL_free(device);
+	device=NULL;
 }
 
 static SDL_VideoDevice *SWITCH_CreateDevice(int devindex)
@@ -153,6 +146,8 @@ SDL_Rect **SWITCH_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
 {
+	Uint32 Rmask, Gmask, Bmask, Amask; 
+	
 	if ( this->hidden->buffer ) {
 		SDL_free( this->hidden->buffer );
 	}
@@ -167,8 +162,13 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 
 	SDL_memset(this->hidden->buffer, 0, width * height * (bpp / 8));
 
+	Rmask = 0xff000000; 
+	Gmask = 0x00ff0000;
+	Bmask = 0x0000ff00;
+	Amask = 0x000000ff;
+
 	/* Allocate the new pixel format for the screen */
-	if ( ! SDL_ReallocFormat(current, bpp, 0, 0, 0, 0) ) {
+	if ( ! SDL_ReallocFormat(current, bpp, Rmask, Gmask, Bmask, Amask) ) {
 		SDL_free(this->hidden->buffer);
 		this->hidden->buffer = NULL;
 		SDL_SetError("Couldn't allocate new pixel format for requested mode");
@@ -176,12 +176,12 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 
 	/* Set up the new mode framebuffer */
-	current->flags = flags & SDL_FULLSCREEN;
-	this->hidden->w = current->w = width;
-	this->hidden->h = current->h = height;
+	current->flags =  SDL_HWSURFACE | SDL_DOUBLEBUF;
+	this->info.current_w = this->hidden->w = current->w = width;
+	this->info.current_h = this->hidden->h = current->h = height;
 	current->pitch = current->w * (bpp / 8);
 	current->pixels = this->hidden->buffer;
-
+	
 	/* We're done */
 	return(current);
 }
@@ -191,6 +191,7 @@ static int SWITCH_AllocHWSurface(_THIS, SDL_Surface *surface)
 {
 	return(-1);
 }
+
 static void SWITCH_FreeHWSurface(_THIS, SDL_Surface *surface)
 {
 	return;
@@ -209,7 +210,27 @@ static void SWITCH_UnlockHWSurface(_THIS, SDL_Surface *surface)
 
 static void SWITCH_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
-	/* do nothing. */
+	u32 width, height;
+	u32 pos_src, pos_dst;
+	u32* framebuf = (u32*) gfxGetFramebuffer((u32*)&width, (u32*)&height);
+	u8* videobuf = (u8*) this->hidden->buffer;
+
+	u32 x, y;
+
+	for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
+	{
+		for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+		{
+			pos_dst = y * width + x;
+			pos_src = (y * this->info.current_w + x)*4;
+			framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
+		}
+	}
+
+	gfxFlushBuffers();
+	gfxSwapBuffers();
+	gfxWaitForVsync();
+
 }
 
 int SWITCH_SetColors(_THIS, int firstcolor, int ncolors, SDL_Color *colors)
@@ -235,15 +256,16 @@ static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface) {
 	u32 width, height;
 	u32 pos_src, pos_dst;
 	u32* framebuf = (u32*) gfxGetFramebuffer((u32*)&width, (u32*)&height);
-	u8* videobuf = (u8*) this->screen->pixels;
-	//Each pixel is 4-bytes due to RGBA8888.
+	u8* videobuf = (u8*) this->hidden->buffer;
+
 	u32 x, y;
-	for (y=0; y<(height< this->screen->h)?height: this->screen->h; y++)//Access the buffer linearly.
+
+	for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
 	{
-		for (x=0; x<(width < this->screen->w)?width: this->screen->w; x++)
+		for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
 		{
 			pos_dst = y * width + x;
-			pos_src = (y * this->screen->w + x)*4;
+			pos_src = (y * this->info.current_w + x)*4;
 			framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
 		}
 	}
