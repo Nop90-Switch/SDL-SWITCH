@@ -244,10 +244,10 @@ int SWITCH_SetColors(_THIS, int firstcolor, int ncolors, SDL_Color *colors)
 */
 void SWITCH_VideoQuit(_THIS)
 {
-	if (this->screen->pixels != NULL)
+	if (this->hidden->buffer != NULL)
 	{
-		SDL_free(this->screen->pixels);
-		this->screen->pixels = NULL;
+		SDL_free(this->hidden->buffer);
+		this->hidden->buffer = NULL;
 	}
 	gfxExit();
 }
