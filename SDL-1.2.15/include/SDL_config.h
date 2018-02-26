@@ -242,7 +242,7 @@
 /* #undef SDL_THREAD_PTHREAD_RECURSIVE_MUTEX_NP */
 /* #undef SDL_THREAD_SPROC */
 /* #undef SDL_THREAD_WIN32 */
-//#define SDL_THREAD_N3DS 1
+//#define SDL_THREAD_SWITCH 1
 #define SDL_THREADS_DISABLED	1
 
 /* Enable various timer systems */
@@ -256,7 +256,8 @@
 /* #undef SDL_TIMER_UNIX */
 /* #undef SDL_TIMER_WIN32 */
 /* #undef SDL_TIMER_WINCE */
-#define SDL_TIMER_DUMMY 1
+//#define SDL_TIMER_DUMMY 1
+#define SDL_TIMER_SWITCH	1
 
 /* Enable various video drivers */
 /* #undef SDL_VIDEO_DRIVER_AALIB */

@@ -107,15 +107,15 @@
 #define SDL_THREADS_DISABLED	1
 
 /* Enable thread support */
-//#define SDL_THREAD_N3DS	1
+//#define SDL_THREAD_SWITCH 1
 
 /* Enable various timer systems */
-//#define SDL_TIMER_N3DS	1
+#define SDL_TIMER_SWITCH	1
 /* Enable the stub timer support (src/timer/dummy/\*.c) */
-#define SDL_TIMERS_DISABLED	1
+//#define SDL_TIMERS_DISABLED	1
 
 /* Enable various video drivers */
 //#define SDL_VIDEO_DRIVER_SWITCH	1
-#define SDL_VIDEO_DRIVER_DUMMY	1
+#define SDL_VIDEO_DRIVER_SWITCH	1
 
 #endif /* _SDL_config_nds_h */

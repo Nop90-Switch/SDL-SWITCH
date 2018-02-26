@@ -41,7 +41,7 @@ OBJS =	src/SDL.o \
 	src/thread/generic/SDL_sysmutex.o \
 	src/thread/generic/SDL_syscond.o \
 	src/timer/SDL_timer.o \
-	src/timer/dummy/SDL_systimer.o \
+	src/timer/switch/SDL_systimer.o \
 	src/video/SDL_blit.o \
 	src/video/SDL_blit_0.o \
 	src/video/SDL_blit_1.o \
