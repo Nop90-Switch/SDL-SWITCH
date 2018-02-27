@@ -35,6 +35,9 @@ $(TARGET_LIB): $(OBJS)
 install: $(TARGET_LIB)
 	@mkdir -p "$(DEVKITPRO)/portlibs/switch/lib"
 	@cp  $(TARGET_LIB) "$(DEVKITPRO)/portlibs/switch/lib"
+	@mkdir -p "$(DEVKITPRO)/portlibs/switch/include"
+	@mkdir -p "$(DEVKITPRO)/portlibs/switch/include/SDL"
+	@cp SDL_ttf.h "$(DEVKITPRO)/portlibs/switch/include/SDL"
 	@echo "Installed!"
 
 clean:
