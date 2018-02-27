@@ -27,6 +27,8 @@ Uint32 SDL_GetTicks (void) {
 }
 
 void SDL_Delay (Uint32 ms) {
+	svcSleepThread((Uint64)ms * 1000000);
+/*
 #ifdef SDL_THREAD_SWITCH
 	if (threadGetCurrent != NULL)
 		svcSleepThread((Uint64)ms * 1000000);
@@ -55,6 +57,7 @@ void SDL_Delay (Uint32 ms) {
 #ifdef SDL_THREAD_SWITCH
 	}
 #endif
+*/
 }
 
 int SDL_SYS_TimerInit (void) {
