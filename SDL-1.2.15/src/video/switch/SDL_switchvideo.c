@@ -129,10 +129,10 @@ int SWITCH_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	gfxInitDefault();
 	vformat->BitsPerPixel = 32;
 	vformat->BytesPerPixel = 4;
-	vformat->Rmask = 0xff000000;
-	vformat->Gmask = 0x00ff0000;
-	vformat->Bmask = 0x0000ff00; 
-	vformat->Amask = 0x000000ff; 
+	vformat->Rmask = 0x000000ff;
+	vformat->Gmask = 0x0000ff00;
+	vformat->Bmask = 0x00ff0000; 
+	vformat->Amask = 0xff000000; 
 
 	/* We're done! */
 	return(0);
@@ -162,10 +162,10 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 
 	SDL_memset(this->hidden->buffer, 0, width * height * (bpp / 8));
 
-	Rmask = 0xff000000; 
-	Gmask = 0x00ff0000;
-	Bmask = 0x0000ff00;
-	Amask = 0x000000ff;
+	Rmask = 0x000000ff; 
+	Gmask = 0x0000ff00;
+	Bmask = 0x00ff0000;
+	Amask = 0xff000000;
 
 	/* Allocate the new pixel format for the screen */
 	if ( ! SDL_ReallocFormat(current, bpp, Rmask, Gmask, Bmask, Amask) ) {
