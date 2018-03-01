@@ -18,7 +18,7 @@
 
     Sam Lantinga
     slouken@libsdl.org
-*/
+*/ 
 #include "SDL_config.h"
 
 /* Being a null driver, there's no event stream. We just define stubs for
@@ -43,56 +43,54 @@ void SWITCH_PumpEvents(_THIS)
 		SDL_PushEvent(&sdlevent);
 	} 
 	
-	hidScanInput();
-
 	int i;
+	u32 keys;
 	SDL_keysym keysym;
 	keysym.mod = KMOD_NONE;
+
+	hidScanInput();
+	keys = hidKeysHeld(CONTROLLER_P1_AUTO);
 
 	for (i = 0; i < SWITCH_NUMKEYS; i++) {
 		keysym.scancode = i;
 		keysym.sym = keymap[i];
 
-		if (hidKeysHeld(CONTROLLER_P1_AUTO) & (1 << i) && !keymem[i]) {
+		if (keys & (1 << i) && !keymem[i]) {
 			keymem[i] = 1;
 
 			SDL_PrivateKeyboard (SDL_PRESSED, &keysym);
 		}
 
-		if (!(hidKeysHeld(CONTROLLER_P1_AUTO) & (1 << i)) && keymem[i]) {
+		if (!(keys & (1 << i)) && keymem[i]) {
 			keymem[i] = 0;
 
 			SDL_PrivateKeyboard (SDL_RELEASED, &keysym);
 		}
 	}
-/*
+	
 	if (hidKeysHeld(CONTROLLER_P1_AUTO) & KEY_TOUCH) {
+			
 		touchPosition touch;
 
-		hidTouchRead (&touch);
+		hidTouchRead (&touch,0);
 		
-// TO DO: handle fit screen on x and y.Y and Y to be considered separately
+		int xtouch, ytouch;
 		
-		if(this->hidden->screens&SDL_TOPSCR && this->hidden->screens&SDL_BOTTOMSCR) {
-			if (touch.px != 0 || touch.py != 0) {
-				SDL_PrivateMouseMotion (0, 0, 
-					touch.px  + (this->hidden->w1 - 320)/2, 
-					this->hidden->y2 + touch.py + (this->hidden->h2 - 240)/2);
-				if (!SDL_GetMouseState (NULL, NULL))
-					SDL_PrivateMouseButton (SDL_PRESSED, 1, 0, 0);
-			}
-		} else {
-			if (touch.px != 0 || touch.py != 0) {
-				SDL_PrivateMouseMotion (0, 0, (touch.px * this->hidden->w1) / 320, (touch.py * this->hidden->h1) / 240);
-				if (!SDL_GetMouseState (NULL, NULL))
-					SDL_PrivateMouseButton (SDL_PRESSED, 1, 0, 0);
-			}
+		xtouch = touch.px - (1280-this->hidden->w)/2;
+		if (xtouch >= this->hidden->w) xtouch = -1;
+
+		ytouch = touch.py - (720-this->hidden->h)/2;
+		if (ytouch > this->hidden->h) ytouch = -1;
+		
+		if (xtouch >= 0 && xtouch >= 0 ) {
+			SDL_PrivateMouseMotion (0, 0, xtouch, ytouch);
+			if (!SDL_GetMouseState (NULL, NULL))
+				SDL_PrivateMouseButton (SDL_PRESSED, 1, 0, 0);
 		}
 	} else {
 		if (SDL_GetMouseState (NULL, NULL))
 			SDL_PrivateMouseButton (SDL_RELEASED, 1, 0, 0);
 	}
-*/
 }
 
 void SWITCH_InitOSKeymap(_THIS)
@@ -136,6 +134,7 @@ void SWITCH_InitOSKeymap(_THIS)
 	hidScanInput();
 	for (i = 0; i < SWITCH_NUMKEYS; i++)
 		keymem[i] = (hidKeysHeld(CONTROLLER_P1_AUTO) & (1 << i))?1:0;
+		
 }
 
 /* end of SDL_nullevents.c ... */

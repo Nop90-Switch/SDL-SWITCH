@@ -18,7 +18,7 @@
 
     Sam Lantinga
     slouken@libsdl.org
-*/
+*/  
 #include "SDL_config.h"
 
 #ifndef _SDL_switchvideo_h
