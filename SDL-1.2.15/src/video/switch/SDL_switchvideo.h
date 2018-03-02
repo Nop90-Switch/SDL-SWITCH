@@ -34,8 +34,10 @@
 
 struct SDL_PrivateVideoData {
     int w, h;
+    int pw, ph; // phisical framebuffer dimensions
     int bpp;
     void *buffer;
+	unsigned int flags; // backup of create device flags
 };
 
 #endif /* _SDL_nullvideo_h */

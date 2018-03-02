@@ -76,10 +76,10 @@ void SWITCH_PumpEvents(_THIS)
 		
 		int xtouch, ytouch;
 		
-		xtouch = touch.px - (1280-this->hidden->w)/2;
+		xtouch = (touch.px / 1280.0) * this->hidden->pw - (this->hidden->pw-this->hidden->w)/2;
 		if (xtouch >= this->hidden->w) xtouch = -1;
 
-		ytouch = touch.py - (720-this->hidden->h)/2;
+		ytouch = (touch.py / 720.0) * this->hidden->ph - (this->hidden->ph-this->hidden->h)/2;
 		if (ytouch > this->hidden->h) ytouch = -1;
 		
 		if (xtouch >= 0 && xtouch >= 0 ) {

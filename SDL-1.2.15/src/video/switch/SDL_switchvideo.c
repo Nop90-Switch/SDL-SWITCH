@@ -56,6 +56,20 @@ static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface);
 
 /* etc. */
 static void SWITCH_UpdateRects(_THIS, int numrects, SDL_Rect *rects);
+int SWITCH_ToggleFullScreen(_THIS, int on);
+
+
+void SWITCH_SetResolution(_THIS)
+{
+	float rx,ry;
+	rx = 1280.0/this->hidden->w;
+	ry = 720.0/this->hidden->h;
+	if(rx>ry) rx=ry;
+	gfxConfigureResolution(1280/rx, 720/rx);
+	this->hidden->pw=1280/rx;
+	this->hidden->ph=720/rx;
+	gfxSetMode(GfxMode_TiledDouble);
+}
 
 /* SWITCH driver bootstrap functions */
 
@@ -115,6 +129,8 @@ static SDL_VideoDevice *SWITCH_CreateDevice(int devindex)
 	device->GetWMInfo = NULL;
 	device->InitOSKeymap = SWITCH_InitOSKeymap;
 	device->PumpEvents = SWITCH_PumpEvents;
+	
+	device->ToggleFullScreen = SWITCH_ToggleFullScreen;	
 
 	device->free = SWITCH_DeleteDevice;
 
@@ -145,6 +161,20 @@ int SWITCH_VideoInit(_THIS, SDL_PixelFormat *vformat)
 SDL_Rect **SWITCH_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 {
    	 return (SDL_Rect **) -1;
+}
+
+int SWITCH_ToggleFullScreen(_THIS, int on){
+	if ( this->hidden->flags & SDL_FULLSCREEN ) {
+		this->hidden->flags &= ~SDL_FULLSCREEN;
+		gfxConfigureResolution(0, 0);
+		gfxSetMode(GfxMode_LinearDouble);
+		this->hidden->pw=1280;
+		this->hidden->ph=720;
+	} else {
+		this->hidden->flags |= SDL_FULLSCREEN;
+		SWITCH_SetResolution(this);
+	}
+	return 1;
 }
 
 SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
@@ -199,7 +229,8 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 	SDL_memset(this->hidden->buffer, 0, width * height * (bpp / 8));
 
 	/* Set up the new mode framebuffer */
-	current->flags =  SDL_HWSURFACE | SDL_DOUBLEBUF;
+	this->hidden->flags = current->flags =  SDL_HWSURFACE | SDL_DOUBLEBUF | (flags & SDL_FULLSCREEN);
+//	this->hidden->flags = current->flags =  flags;
 	this->info.current_w = this->hidden->w = current->w = width;
 	this->info.current_h = this->hidden->h = current->h = height;
 	this->hidden->bpp = bpp;
@@ -213,8 +244,11 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 		SDL_SetError("Couldn't allocate new pixel format for requested mode");
 		return(NULL);
 	}
+
+	this->hidden->pw=1280;
+	this->hidden->ph=720;
 	
-//	if (flags & SDL_FULLSCREEN) gfxConfigureResolution(width, height);
+	if (flags & SDL_FULLSCREEN) SWITCH_SetResolution(this);
 
 	// lets clead the phisical video buffer, in case we are changing to a smaller screen
 	u32 w, h;
@@ -271,7 +305,7 @@ void SWITCH_VideoQuit(_THIS)
 		SDL_free(this->hidden->buffer);
 		this->hidden->buffer = NULL;
 	}
-	
+	gfxConfigureResolution(0, 0);
 	gfxExit();
 }
 
@@ -294,68 +328,128 @@ static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface) {
 	else 	
 		offy = 0;
 		
-	pos_dst = offy * width + offx;
-	pos_src = 0;
+	if(this->hidden->flags & SDL_FULLSCREEN) {
 
-			
-	switch(this->hidden->bpp) {
-		case 32:
-			for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
-			{
-				for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+		pos_src = 0;
+				
+		switch(this->hidden->bpp) {
+		
+			case 32:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
 				{
-					framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
-					pos_dst++;
-					pos_src += 4;
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[gfxGetFramebufferDisplayOffset(x+offx,y+offy)] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
+						pos_src += 4;
+					}
+					pos_src = pos_src - x*4 + this->info.current_w*4;
 				}
-				pos_dst = pos_dst -x + width;
-				pos_src = pos_src - x*4 + this->info.current_w*4;
-			}
-			break;
-		case 24:
-			for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
-			{
-				for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+				break;
+			case 24:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
 				{
-					framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], 0xff);
-					pos_dst++;
-					pos_src += 3;
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[gfxGetFramebufferDisplayOffset(x+offx,y+offy)] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], 0xff);
+						pos_src += 3;
+					}
+					pos_src = pos_src - x*3 + this->info.current_w*3;
 				}
-				pos_dst = pos_dst - x + width;
-				pos_src = pos_src - x*3 + this->info.current_w*3;
-			}
-			break;
-		case 16:
-			for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
-			{
-				for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+				break;
+			case 16:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
 				{
-					framebuf[pos_dst] = RGBA8((videobuf_16[pos_src]&0xF800)>>8,(videobuf_16[pos_src]&0x07E0)>>3, (videobuf_16[pos_src]&0x001F)<<3,0xff);
-					pos_dst++;
-					pos_src++;
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[gfxGetFramebufferDisplayOffset(x+offx,y+offy)] = RGBA8((videobuf_16[pos_src]&0xF800)>>8,(videobuf_16[pos_src]&0x07E0)>>3, (videobuf_16[pos_src]&0x001F)<<3,0xff);
+						pos_src++;
+					}
+					pos_src = pos_src - x + this->info.current_w;
 				}
-				pos_dst = pos_dst - x + width;
-				pos_src = pos_src - x + this->info.current_w;
-			}
 
-			break;
-		case 8:
-			for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
-			{
-				for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+				break;
+			case 8:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
 				{
-					framebuf[pos_dst] = switch_palette[videobuf[pos_src]];
-					pos_dst++;
-					pos_src++;
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[gfxGetFramebufferDisplayOffset(x+offx,y+offy)] = switch_palette[videobuf[pos_src]];
+						pos_src++;
+					}
+					pos_src = pos_src - x + this->info.current_w;
 				}
-				pos_dst = pos_dst - x + width;
-				pos_src = pos_src - x + this->info.current_w;
-			}
-			break;
-		default:
-			break;
+				break;
+			default:
+				break;
+		}
+	
+	} else {
+	
+		pos_dst = offy * width + offx;
+		pos_src = 0;
+
+				
+		switch(this->hidden->bpp) {
+		
+			case 32:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
+				{
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], videobuf[pos_src+3]);
+						pos_dst++;
+						pos_src += 4;
+					}
+					pos_dst = pos_dst -x + width;
+					pos_src = pos_src - x*4 + this->info.current_w*4;
+				}
+				break;
+			case 24:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
+				{
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[pos_dst] = RGBA8(videobuf[pos_src+0], videobuf[pos_src+1], videobuf[pos_src+2], 0xff);
+						pos_dst++;
+						pos_src += 3;
+					}
+					pos_dst = pos_dst - x + width;
+					pos_src = pos_src - x*3 + this->info.current_w*3;
+				}
+				break;
+			case 16:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
+				{
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[pos_dst] = RGBA8((videobuf_16[pos_src]&0xF800)>>8,(videobuf_16[pos_src]&0x07E0)>>3, (videobuf_16[pos_src]&0x001F)<<3,0xff);
+						pos_dst++;
+						pos_src++;
+					}
+					pos_dst = pos_dst - x + width;
+					pos_src = pos_src - x + this->info.current_w;
+				}
+
+				break;
+			case 8:
+				for (y=0; y<((height< this->info.current_h)?height:this->info.current_h); y++)//Access the buffer linearly.
+				{
+					for (x=0; x<((width < this->info.current_w)?width:this->info.current_w); x++)
+					{
+						framebuf[pos_dst] = switch_palette[videobuf[pos_src]];
+						pos_dst++;
+						pos_src++;
+					}
+					pos_dst = pos_dst - x + width;
+					pos_src = pos_src - x + this->info.current_w;
+				}
+				break;
+			default:
+				break;
+		}
+
 	}
-
+	
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	gfxWaitForVsync();
