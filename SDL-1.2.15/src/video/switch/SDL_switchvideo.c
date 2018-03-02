@@ -271,7 +271,8 @@ void SWITCH_VideoQuit(_THIS)
 		SDL_free(this->hidden->buffer);
 		this->hidden->buffer = NULL;
 	}
-//	gfxExit();
+	
+	gfxExit();
 }
 
 static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface) {
