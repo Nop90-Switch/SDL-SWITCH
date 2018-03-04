@@ -173,6 +173,9 @@ extern AudioBootStrap NDSAUD_bootstrap;
 #if SDL_AUDIO_DRIVER_N3DS
 extern AudioBootStrap N3DSAUD_bootstrap;
 #endif
+#if SDL_AUDIO_DRIVER_SWITCH
+extern AudioBootStrap SWITCHAUD_bootstrap;
+#endif
 #if SDL_AUDIO_DRIVER_MMEAUDIO
 extern AudioBootStrap MMEAUDIO_bootstrap;
 #endif

@@ -186,7 +186,8 @@
 /* #undef SDL_AUDIO_DRIVER_SNDMGR */
 /* #undef SDL_AUDIO_DRIVER_SUNAUDIO */
 /* #undef SDL_AUDIO_DRIVER_WAVEOUT */
-#define SDL_AUDIO_DRIVER_DUMMY 1
+#define SDL_AUDIO_DRIVER_SWITCH 1
+//#define SDL_AUDIO_DRIVER_DUMMY 1
 
 /* Enable various cdrom drivers */
 /* #undef SDL_CDROM_AIX */
@@ -242,8 +243,8 @@
 /* #undef SDL_THREAD_PTHREAD_RECURSIVE_MUTEX_NP */
 /* #undef SDL_THREAD_SPROC */
 /* #undef SDL_THREAD_WIN32 */
-//#define SDL_THREAD_SWITCH 1
-#define SDL_THREADS_DISABLED	1
+#define SDL_THREAD_SWITCH 1
+//#define SDL_THREADS_DISABLED	1
 
 /* Enable various timer systems */
 /* #undef SDL_TIMER_BEOS */
