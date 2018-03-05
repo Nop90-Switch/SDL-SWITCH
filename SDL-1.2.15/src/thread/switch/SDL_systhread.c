@@ -35,7 +35,7 @@
 
 int SDL_SYS_CreateThread(SDL_Thread *thread, void *args)
 {
-	s32 priority = 0x29;
+	s32 priority = 0x2b;
 	Thread *tempThread;
 	int rc=-1;
 	
@@ -54,8 +54,15 @@ int SDL_SYS_CreateThread(SDL_Thread *thread, void *args)
 		SDL_SetError("Create Thread failed");
 		return(-1);
 	}
+	
+	rc = threadStart(tempThread);
+	if (R_FAILED(rc))
+	{
+		SDL_SetError("Start Thread failed");
+		return(-1);
+	}
 
-	thread->handle = tempThread;
+	thread->threadid = thread->handle = tempThread;
  
 	return 0;
 }
@@ -65,9 +72,13 @@ void SDL_SYS_SetupThread(void)
 	 //Nothing, probably
 }
 
+#include "internal.h" // todo: find another solution
 Uint32 SDL_ThreadID(void)
 {
-	return(0);
+	ThreadVars* var = getThreadVars();
+	if (var)
+		return(&var->handle);
+	else return(0);
 }
 
 void SDL_SYS_WaitThread(SDL_Thread *thread)

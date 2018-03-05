@@ -17,6 +17,8 @@ void SDL_StartTicks (void) {
 }
 
 Uint32 SDL_GetTicks (void) {
+//	return (u32)(svcGetSystemTick()>>32);
+
 	Uint32 ticks;
 	struct timeval now;
 
@@ -27,10 +29,9 @@ Uint32 SDL_GetTicks (void) {
 }
 
 void SDL_Delay (Uint32 ms) {
-	svcSleepThread((Uint64)ms * 1000000);
-/*
 #ifdef SDL_THREAD_SWITCH
-	if (threadGetCurrent != NULL)
+//	if (threadGetCurrent != NULL)
+	if (SDL_ThreadID()>0) // Don't use svcSleepThread for main process. Ddirty and could not work every time. Find a betetr way. maybe using a const value if exist
 		svcSleepThread((Uint64)ms * 1000000);
 	else {
 #endif
@@ -57,7 +58,6 @@ void SDL_Delay (Uint32 ms) {
 #ifdef SDL_THREAD_SWITCH
 	}
 #endif
-*/
 }
 
 int SDL_SYS_TimerInit (void) {
@@ -68,7 +68,7 @@ void SDL_SYS_TimerQuit (void) {
 }
 
 int SDL_SYS_StartTimer (void) {
-	SDL_SetError ("Timers not implemented on 3DS");
+	SDL_SetError ("Timers not implemented on Switch");
 
 	return -1;
 }

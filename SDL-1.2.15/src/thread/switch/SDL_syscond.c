@@ -37,6 +37,11 @@ struct SDL_cond
 	Mutex mutex;
 };
 
+struct SDL_mutex 
+{
+	Mutex mutex;
+};
+
 /* Create a condition variable */
 SDL_cond *
 SDL_CreateCond(void)
@@ -45,10 +50,7 @@ SDL_CreateCond(void)
     Mutex *mutex;
 
     cond = (SDL_cond *) SDL_malloc(sizeof(*cond));
-    if (cond) {
-		mutexInit(&cond->mutex);
-        condvarInit(&cond->cond, &cond->mutex);
-    } else {
+    if (!cond) {
         SDL_OutOfMemory();
     }
     return (cond);
@@ -71,9 +73,7 @@ SDL_CondSignal(SDL_cond * cond)
         SDL_SetError("Passed a NULL condition variable");
         return -1;
     }
-
     condvarWakeOne(&cond->cond);
-
     return 0;
 }
 
@@ -87,7 +87,6 @@ SDL_CondBroadcast(SDL_cond * cond)
     }
 
     condvarWakeAll(&cond->cond);
-
     return 0;
 }
 
@@ -122,6 +121,8 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
         return -1;
     }
 
+     condvarInit(&cond->cond, &mutex->mutex);
+
     /* Unlock the mutex, as is required by condition variable semantics */
     SDL_UnlockMutex(mutex);
 
@@ -144,6 +145,8 @@ SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex)
         return -1;
     }
 
+    condvarInit(&cond->cond, &mutex->mutex);
+	
     /* Unlock the mutex, as is required by condition variable semantics */
     SDL_UnlockMutex(mutex);
 
