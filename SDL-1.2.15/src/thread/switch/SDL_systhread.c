@@ -33,9 +33,15 @@
 
 #define STACKSIZE       (4 * 1024)
 
+void ThreadEntry(void *arg)
+{
+	SDL_RunThread(arg);
+//	while(1) SDL_Delay(-1); // this is for RyujiNX
+}
+
 int SDL_SYS_CreateThread(SDL_Thread *thread, void *args)
 {
-	s32 priority = 0x2b;
+	s32 priority = 0x2B;
 	Thread *tempThread;
 	int rc=-1;
 	
@@ -44,11 +50,9 @@ int SDL_SYS_CreateThread(SDL_Thread *thread, void *args)
 /*
 	// Set priority of new thread higher than the current thread 
 	svcGetThreadPriority(&priority, CURRENT_KTHREAD); //  0x2C is the usual priority of the main thread.
-	if(priority>0x19) priority--;
-	else priority = 0x19; //priority 0x18 is for video thread that is activated by a signal and than must run at maximum priority to avoid flickering
-	if(priority>0x2F) priority = 0x2F;
+	if(priority>0x0) priority--;
 */
-	rc = threadCreate(tempThread, SDL_RunThread, args, STACKSIZE, priority, -2);
+	rc = threadCreate(tempThread, ThreadEntry, args, STACKSIZE, priority, -2);
 	if (R_FAILED(rc))
 	{
 		SDL_SetError("Create Thread failed");
@@ -62,7 +66,9 @@ int SDL_SYS_CreateThread(SDL_Thread *thread, void *args)
 		return(-1);
 	}
 
-	thread->threadid = thread->handle = tempThread;
+	thread->handle = tempThread;
+	
+	thread->threadid = (int) tempThread->handle;
  
 	return 0;
 }
@@ -72,23 +78,31 @@ void SDL_SYS_SetupThread(void)
 	 //Nothing, probably
 }
 
-#include "internal.h" // todo: find another solution
 Uint32 SDL_ThreadID(void)
 {
-	ThreadVars* var = getThreadVars();
-	if (var)
-		return(&var->handle);
-	else return(0);
+	return (int) armGetTls();
 }
 
 void SDL_SYS_WaitThread(SDL_Thread *thread)
 {
-	threadWaitForExit((Thread *) thread->handle);
+
+	if(thread->handle) {
+		threadWaitForExit((Thread *) thread->handle);
+		threadClose((Thread *) thread->handle);
+		free(thread);
+		thread->handle = NULL;
+	}	
+
 }
 
 void SDL_SYS_KillThread(SDL_Thread *thread)
 {
-	threadClose((Thread *) thread->handle);
-	free(thread->handle);
+	if(thread->handle)
+	{
+//		threadPause((Thread *) thread->handle);
+		threadClose((Thread *) thread->handle);
+		free(thread);
+		thread->handle = NULL;
+	}
 }
 

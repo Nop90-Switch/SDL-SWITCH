@@ -17,8 +17,6 @@ void SDL_StartTicks (void) {
 }
 
 Uint32 SDL_GetTicks (void) {
-//	return (u32)(svcGetSystemTick()>>32);
-
 	Uint32 ticks;
 	struct timeval now;
 
@@ -29,35 +27,7 @@ Uint32 SDL_GetTicks (void) {
 }
 
 void SDL_Delay (Uint32 ms) {
-#ifdef SDL_THREAD_SWITCH
-//	if (threadGetCurrent != NULL)
-	if (SDL_ThreadID()>0) // Don't use svcSleepThread for main process. Ddirty and could not work every time. Find a betetr way. maybe using a const value if exist
 		svcSleepThread((Uint64)ms * 1000000);
-	else {
-#endif
-	int was_error;
-	struct timeval tv;
-	Uint32 then, now, elapsed;
-
-	then = SDL_GetTicks();
-
-	do {
-		now = SDL_GetTicks ();
-		elapsed = (now - then);
-		then = now;
-		if (elapsed >= ms) {
-			break;
-		}
-		ms -= elapsed;
-
-		tv.tv_sec = ms / 1000;
-		tv.tv_usec = (ms % 1000) * 1000;
-
-		was_error = select(0, NULL, NULL, NULL, &tv);
-	} while (was_error);
-#ifdef SDL_THREAD_SWITCH
-	}
-#endif
 }
 
 int SDL_SYS_TimerInit (void) {

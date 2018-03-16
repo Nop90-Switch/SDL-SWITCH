@@ -14,7 +14,7 @@ OBJS =	src/SDL.o \
 	src/audio/SDL_audiodev.o \
 	src/audio/SDL_mixer.o \
 	src/audio/SDL_wave.o \
-	src/audio/dummy/SDL_dummyaudio.o \
+	src/audio/switch/SDL_switchaudio.o \
 	src/cdrom/SDL_cdrom.o \
 	src/cdrom/dummy/SDL_syscdrom.o \
 	src/cpuinfo/SDL_cpuinfo.o \
@@ -36,10 +36,10 @@ OBJS =	src/SDL.o \
 	src/stdlib/SDL_stdlib.o \
 	src/stdlib/SDL_string.o \
 	src/thread/SDL_thread.o \
-	src/thread/generic/SDL_syssem.o \
-	src/thread/generic/SDL_systhread.o \
-	src/thread/generic/SDL_sysmutex.o \
-	src/thread/generic/SDL_syscond.o \
+	src/thread/switch/SDL_syssem.o \
+	src/thread/switch/SDL_systhread.o \
+	src/thread/switch/SDL_sysmutex.o \
+	src/thread/switch/SDL_syscond.o \
 	src/timer/SDL_timer.o \
 	src/timer/switch/SDL_systimer.o \
 	src/video/SDL_blit.o \

@@ -29,18 +29,20 @@
 
 #define _THIS	SDL_AudioDevice *this
 
-#define NUM_BUFFERS 2			/* -- Don't lower this! */
+#define NUM_BUFFERS 4			 
 
 struct SDL_PrivateAudioData {
 	/* The file descriptor for the audio device */
-	Uint8 *mixbuf;
+
 	Uint32 mixlen;
 	Uint32 format;
-    Uint32 samplerate;
-	Uint32 channels;
+//    Uint32 samplerate;
+//	Uint32 channels;
     Uint8  bytePerSample;
-	Uint32 nextbuf;
 	AudioOutBuffer waveBuf[NUM_BUFFERS];
+	AudioOutBuffer *released_buffer;
+	u32 released_count;
+	u32 next;
 };
 
 #endif /* _SDL_switchaudio_h */
