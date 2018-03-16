@@ -38,6 +38,7 @@ struct SDL_PrivateVideoData {
     int bpp;
     void *buffer;
 	unsigned int flags; // backup of create device flags
+	u8 clearbuffer; // number of full hw buffer to clear at startup and after toggling fullscreen (and maybe other situations in future)
 };
 
 #endif /* _SDL_nullvideo_h */

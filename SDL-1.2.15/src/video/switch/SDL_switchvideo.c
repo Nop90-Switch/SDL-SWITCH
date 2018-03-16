@@ -164,6 +164,8 @@ SDL_Rect **SWITCH_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 }
 
 int SWITCH_ToggleFullScreen(_THIS, int on){
+	this->hidden->clearbuffer=2;
+
 	if ( this->hidden->flags & SDL_FULLSCREEN ) {
 		this->hidden->flags &= ~SDL_FULLSCREEN;
 		gfxConfigureResolution(0, 0);
@@ -247,13 +249,17 @@ SDL_Surface *SWITCH_SetVideoMode(_THIS, SDL_Surface *current,
 
 	this->hidden->pw=1280;
 	this->hidden->ph=720;
+	gfxConfigureResolution(0, 0);
+	gfxSetMode(GfxMode_LinearDouble);
 	
 	if (flags & SDL_FULLSCREEN) SWITCH_SetResolution(this);
 
 	// lets clead the phisical video buffer, in case we are changing to a smaller screen
 	u32 w, h;
 	u32* framebuf = (u32*) gfxGetFramebuffer((u32*)&w, (u32*)&h);
-	memset(framebuf,0,w*h*4);
+
+//	memset(framebuf,0,w*h*4);
+	this->hidden->clearbuffer=2;
 	
 	/* We're done */
 	return(current);
@@ -315,6 +321,12 @@ static int SWITCH_FlipHWSurface (_THIS, SDL_Surface *surface) {
 	u32* framebuf = (u32*) gfxGetFramebuffer((u32*)&width, (u32*)&height);
 	u8* videobuf = (u8*) this->hidden->buffer;
 	u16* videobuf_16 = (u16*) this->hidden->buffer;
+
+	//clear HW buffers after startup, toggle fullscreen, and maybe other situations in future...
+	if(this->hidden->clearbuffer) {
+		memset(framebuf,0,1280*720*4);
+		this->hidden->clearbuffer--;
+	}
 
 	u32 x, y, offx, offy;
 
